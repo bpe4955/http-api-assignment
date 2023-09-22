@@ -10,7 +10,11 @@ const respond = (request, response, status, object, type = '*/*') => {
 
 // function to show a success status code
 const success = (request, response, params, acceptedTypes) => {
-  if (acceptedTypes[0] === 'application/json') {
+  // Check url for 'contenttype' param
+  let preferredType = acceptedTypes[0];
+  if (params.contenttype) { preferredType = params.contenttype; }
+
+  if (preferredType === 'text/html' || preferredType === 'application/json') {
     // message to send
     const responseObj = {
       message: 'This is a successful response',
@@ -18,7 +22,7 @@ const success = (request, response, params, acceptedTypes) => {
     // send our json with a success status code
     return respond(request, response, 200, JSON.stringify(responseObj), 'application/json');
   }
-  if (acceptedTypes[0] === 'text/xml') {
+  if (preferredType === 'text/xml') {
     const responseObj = '<response> <message>This is a successful response</message> </response>';
     return respond(request, response, 200, responseObj, 'text/xml');
   }
@@ -29,9 +33,12 @@ const success = (request, response, params, acceptedTypes) => {
 
 // function to show a bad request without the correct parameters
 const badRequest = (request, response, params, acceptedTypes) => {
+  // Check url for 'contenttype' param
+  let preferredType = acceptedTypes[0];
+  if (params.contenttype) { preferredType = params.contenttype; }
   let responseObj;
 
-  if (acceptedTypes[0] === 'application/json') {
+  if (preferredType === 'text/html' || preferredType === 'application/json') {
     // message to send
     responseObj = {
       message: 'This request has the required parameters',
@@ -46,7 +53,7 @@ const badRequest = (request, response, params, acceptedTypes) => {
       return respond(request, response, 400, JSON.stringify(responseObj), 'application/json');
     }
     responseObj = JSON.stringify(responseObj);
-  } else if (acceptedTypes[0] === 'text/xml') {
+  } else if (preferredType === 'text/xml') {
     responseObj = '<response> <message>This request has the required parameters</message> </response>';
     // if the request does not contain a valid=true query parameter
     if (!params.valid || params.valid !== 'true') {
@@ -57,16 +64,19 @@ const badRequest = (request, response, params, acceptedTypes) => {
   }
 
   // if the parameter is here, send json with a success status code
-  if (responseObj) { return respond(request, response, 200, responseObj, acceptedTypes[0]); }
+  if (responseObj) { return respond(request, response, 200, responseObj, preferredType); }
 
   // Not requesting JSON or XML
   return respond(request, response, 400, 'Server can only handle JSON or XML requests at this URI.', 'text/plain');
 };
 
 const unauthorized = (request, response, params, acceptedTypes) => {
+  // Check url for 'contenttype' param
+  let preferredType = acceptedTypes[0];
+  if (params.contenttype) { preferredType = params.contenttype; }
   let responseObj;
 
-  if (acceptedTypes[0] === 'application/json') {
+  if (preferredType === 'text/html' || preferredType === 'application/json') {
     // message to send
     responseObj = {
       message: 'User is logged in and can view content',
@@ -81,7 +91,7 @@ const unauthorized = (request, response, params, acceptedTypes) => {
       return respond(request, response, 401, JSON.stringify(responseObj), 'application/json');
     }
     responseObj = JSON.stringify(responseObj);
-  } else if (acceptedTypes[0] === 'text/xml') {
+  } else if (preferredType === 'text/xml') {
     responseObj = '<response> <message>User is logged in and can view content</message> </response>';
     // if the request does not contain a valid=true query parameter
     if (!params.loggedIn || params.loggedIn !== 'true') {
@@ -91,64 +101,76 @@ const unauthorized = (request, response, params, acceptedTypes) => {
     }
   }
   // return our json with a 200 success code
-  if (responseObj) { return respond(request, response, 200, responseObj, acceptedTypes[0]); }
+  if (responseObj) { return respond(request, response, 200, responseObj, preferredType); }
 
   // Not requesting JSON or XML
   return respond(request, response, 400, 'Server can only handle JSON or XML requests at this URI.', 'text/plain');
 };
 
 const forbidden = (request, response, params, acceptedTypes) => {
+  // Check url for 'contenttype' param
+  let preferredType = acceptedTypes[0];
+  if (params.contenttype) { preferredType = params.contenttype; }
   let responseObj;
 
-  if (acceptedTypes[0] === 'application/json') {
+  if (preferredType === 'text/html' || preferredType === 'application/json') {
     // message to send
     responseObj = {
       message: 'You cannot view this page.',
       id: 'forbidden',
     };
     responseObj = JSON.stringify(responseObj);
-  } else if (acceptedTypes[0] === 'text/xml') {
+  } else if (preferredType === 'text/xml') {
     responseObj = '<response> <message>You cannot view this page.</message> <id>forbidden</id> </response>';
   }
   // return our data with a 403 forbidden error code
-  respond(request, response, 403, responseObj, acceptedTypes[0]);
+  if(responseObj) { return respond(request, response, 403, responseObj, preferredType); }
+
+  // Not requesting JSON or XML
+  return respond(request, response, 400, 'Server can only handle JSON or XML requests at this URI.', 'text/plain');
 };
 
 const internal = (request, response, params, acceptedTypes) => {
+  // Check url for 'contenttype' param
+  let preferredType = acceptedTypes[0];
+  if (params.contenttype) { preferredType = params.contenttype; }
   let responseObj;
 
-  if (acceptedTypes[0] === 'application/json') {
+  if (preferredType === 'text/html' || preferredType === 'application/json') {
     // message to send
     responseObj = {
       message: 'The server has encountered an error.',
       id: 'internal',
     };
     responseObj = JSON.stringify(responseObj);
-  } else if (acceptedTypes[0] === 'text/xml') {
+  } else if (preferredType === 'text/xml') {
     responseObj = '<response> <message>The server has encountered an error.</message> <id>internal</id> </response>';
   }
   // return our data with a 500 internal server error code
-  if (responseObj) { return respond(request, response, 500, responseObj, acceptedTypes[0]); }
+  if (responseObj) { return respond(request, response, 500, responseObj, preferredType); }
 
   // Not requesting JSON or XML
   return respond(request, response, 400, 'Server can only handle JSON or XML requests at this URI.', 'text/plain');
 };
 
 const notImplemented = (request, response, params, acceptedTypes) => {
+  // Check url for 'contenttype' param
+  let preferredType = acceptedTypes[0];
+  if (params.contenttype) { preferredType = params.contenttype; }
   let responseObj;
 
-  if (acceptedTypes[0] === 'application/json') {
+  if (preferredType === 'text/html' || preferredType === 'application/json') {
     // message to send
     responseObj = {
       message: 'The page you are looking for is not yet ready.',
       id: 'notImplemented',
     };
     responseObj = JSON.stringify(responseObj);
-  } else if (acceptedTypes[0] === 'text/xml') {
+  } else if (preferredType === 'text/xml') {
     responseObj = '<response> <message>The page you are looking for is not yet ready.</message> <id>notImplemented</id> </response>';
   }
   // return our data with a 501 not implemented error code
-  if (responseObj) { return respond(request, response, 501, responseObj, acceptedTypes[0]); }
+  if (responseObj) { return respond(request, response, 501, responseObj, preferredType); }
 
   // Not requesting JSON or XML
   return respond(request, response, 400, 'Server can only handle JSON or XML requests at this URI.', 'text/plain');
@@ -156,23 +178,30 @@ const notImplemented = (request, response, params, acceptedTypes) => {
 
 // function to show not found error
 const notFound = (request, response, params, acceptedTypes) => {
+  // Check url for 'contenttype' param
+  let preferredType;
+  if(acceptedTypes) { preferredType = acceptedTypes[0]; }
+  if (params.contenttype) { preferredType = params.contenttype; }
   let responseObj;
   if (!acceptedTypes) {
     return respond(request, response, 404);
   }
 
-  if (acceptedTypes[0] === 'application/json') {
+  if (preferredType === 'text/html' || preferredType === 'application/json') {
     // message to send
     responseObj = {
       message: 'The page you are looking for was not found.',
       id: 'notFound',
     };
     responseObj = JSON.stringify(responseObj);
-  } else if (acceptedTypes[0] === 'text/xml') {
+  } else if (preferredType === 'text/xml') {
     responseObj = '<response> <message>The page you are looking for was not found.</message> <id>notFound</id> </response>';
   }
   // return our data with a 404 not found error code
-  return respond(request, response, 404, responseObj, acceptedTypes[0]);
+  if(responseObj) { return respond(request, response, 404, responseObj, preferredType); }
+  
+  // Not requesting JSON or XML
+  return respond(request, response, 400, 'Server can only handle JSON or XML requests at this URI.', 'text/plain');
 };
 
 // exports to set functions to public.
