@@ -180,6 +180,7 @@ const notImplemented = (request, response, params, acceptedTypes) => {
 const notFound = (request, response, params, acceptedTypes) => {
   // Check url for 'contenttype' param
   let preferredType;
+  // If I try to put preferredType = acceptedTypes[0], it yells at me about array destructuring
   if (acceptedTypes) { const temp = acceptedTypes[0]; preferredType = temp; }
   if (params.contenttype) { preferredType = params.contenttype; }
   let responseObj;
