@@ -5,6 +5,84 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
   
   <script>
+    //Handle response takes in the response object (from our fetch request), and 
+    //a boolean of if we should parse the response or not (since head requests have
+    //no actual response). It is marked as async because we will use await.
+    const handleResponse = async (response) => {
+      // Grab content-type header
+      const contentType = response.headers.get('Content-Type');
+      //Grab the content section so that we can write to it
+      const content = document.querySelector('#content');
+
+      //Based on the status of the response, write something.
+      switch(response.status) {
+        case 200: 
+          content.innerHTML = `<b>Success</b>`;
+          break;
+        case 400: 
+          content.innerHTML = `<b>Bad Request</b>`;
+          break;
+        case 401: 
+          content.innerHTML = `<b>Unauthorized</b>`;
+          break;
+        case 403: 
+          content.innerHTML = `<b>Forbidden</b>`;
+          break;
+        case 404:
+          content.innerHTML = `<b>Resource Not Found</b>`;
+          break;
+        case 500: 
+          content.innerHTML = `<b>Internal Server Error</b>`;
+          break;
+        case 501: 
+          content.innerHTML = `<b>Not Yet Implemented</b>`;
+          break;
+        default: 
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+      }
+
+      //If we should parse a response (meaning we made a get json request)
+      if(contentType === 'application/json') {
+        //Parse the response to json. This is an async function, so we will await it.
+        let obj = await response.json();
+        content.innerHTML += `<p>${obj.message}</p>`;
+      } 
+      else if(contentType === 'text/xml') {
+        let obj = await response.text();
+        const parsedResponse = await new window.DOMParser().parseFromString(obj, 'text/xml');
+        content.innerHTML += `<p>${parsedResponse.querySelector('message').textContent}</p>`;
+      }
+      else if(contentType === 'text/plain'){
+        content.innerHTML += `<p>Server can only handle JSON or XML requests.</p>`;
+      } 
+      else {
+        //If we don't have a response to parse, just say we recieved metadata
+        content.innerHTML += '<p>Meta Data Received</p>';
+      }
+    };
+
+    const init = () => {
+      //grab button
+      const sendBtn = document.querySelector('#send');
+      const pageSelect = document.querySelector('#page');
+      const typeSelect = document.querySelector('#type');
+      
+      //button event
+      const sendRequest = async (e) => {
+        let response = await fetch(pageSelect.value, {
+          headers: {
+            'Accept': typeSelect.value,
+          }});
+
+        handleResponse(response);
+      }
+      
+      //add event listener
+      sendBtn.addEventListener('click', sendRequest);
+    };
+
+    window.onload = init;
 
   </script>
 </head>
@@ -14,7 +92,9 @@
     <select id="page">
       <option value="/success">Success</option>
       <option value="/badRequest">Bad Request</option>
+      <option value="/badRequest?valid=true">Good Request</option>
       <option value="/unauthorized">Unauthorized</option>
+      <option value="/unauthorized?loggedIn=true">Authorized</option>
       <option value="/forbidden">Forbidden</option>
       <option value="/internal">Internal</option>
       <option value="/notImplemented">Not Implemented</option>
