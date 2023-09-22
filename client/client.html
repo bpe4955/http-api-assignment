@@ -46,12 +46,18 @@
       if(contentType === 'application/json') {
         //Parse the response to json. This is an async function, so we will await it.
         let obj = await response.json();
-        content.innerHTML += `<p>${obj.message}</p>`;
+        console.log(obj);
+        content.innerHTML += `<p><p>Message: ${obj.message}</p>`;
+        if(obj.id) {content.innerHTML += `<p>id: ${obj.id}</p>`;}
       } 
       else if(contentType === 'text/xml') {
         let obj = await response.text();
+        console.log(obj);
         const parsedResponse = await new window.DOMParser().parseFromString(obj, 'text/xml');
-        content.innerHTML += `<p>${parsedResponse.querySelector('message').textContent}</p>`;
+        content.innerHTML += `<p>Message: ${parsedResponse.querySelector('message').textContent}</p>`;
+        if(parsedResponse.querySelector('id')){
+        content.innerHTML += `<p>id: ${parsedResponse.querySelector('id').textContent}</p>`;
+        }
       }
       else if(contentType === 'text/plain'){
         content.innerHTML += `<p>Server can only handle JSON or XML requests.</p>`;

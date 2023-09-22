@@ -95,7 +95,7 @@ const unauthorized = (request, response, params, acceptedTypes) => {
     responseObj = '<response> <message>User is logged in and can view content</message> </response>';
     // if the request does not contain a valid=true query parameter
     if (!params.loggedIn || params.loggedIn !== 'true') {
-      responseObj = '<response> <message>Missing loggedIn query parameter set to true</message> <id>badRequest</id> </response>';
+      responseObj = '<response> <message>Missing loggedIn query parameter set to true</message> <id>unauthorized</id> </response>';
       // return our json with a 401 unauthorized code
       return respond(request, response, 401, responseObj, 'text/xml');
     }
@@ -124,7 +124,7 @@ const forbidden = (request, response, params, acceptedTypes) => {
     responseObj = '<response> <message>You cannot view this page.</message> <id>forbidden</id> </response>';
   }
   // return our data with a 403 forbidden error code
-  if(responseObj) { return respond(request, response, 403, responseObj, preferredType); }
+  if (responseObj) { return respond(request, response, 403, responseObj, preferredType); }
 
   // Not requesting JSON or XML
   return respond(request, response, 400, 'Server can only handle JSON or XML requests at this URI.', 'text/plain');
@@ -180,7 +180,7 @@ const notImplemented = (request, response, params, acceptedTypes) => {
 const notFound = (request, response, params, acceptedTypes) => {
   // Check url for 'contenttype' param
   let preferredType;
-  if(acceptedTypes) { preferredType = acceptedTypes[0]; }
+  if (acceptedTypes) { const temp = acceptedTypes[0]; preferredType = temp; }
   if (params.contenttype) { preferredType = params.contenttype; }
   let responseObj;
   if (!acceptedTypes) {
@@ -198,8 +198,8 @@ const notFound = (request, response, params, acceptedTypes) => {
     responseObj = '<response> <message>The page you are looking for was not found.</message> <id>notFound</id> </response>';
   }
   // return our data with a 404 not found error code
-  if(responseObj) { return respond(request, response, 404, responseObj, preferredType); }
-  
+  if (responseObj) { return respond(request, response, 404, responseObj, preferredType); }
+
   // Not requesting JSON or XML
   return respond(request, response, 400, 'Server can only handle JSON or XML requests at this URI.', 'text/plain');
 };
